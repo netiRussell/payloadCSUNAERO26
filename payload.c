@@ -9,19 +9,23 @@
 #include "driver/gpio.h"
 #include "driver/rmt_rx.h"
 #include "freertos/semphr.h"
-#include "hal/ledc_types.h"
-#include "driver/ledc.h"
+#include "freertos/idf_additions.h"
 
 // Macros
 #define TRIG_pin_num 16
 #define ECHO_pin_num 18
 #define INTERNAL_RGB_LED 38
 
-// Global structs and variables
+// Global structs, handles, and variables
 typedef struct {
     SemaphoreHandle_t RMT_semphr;
     uint16_t distance;
 } user_ctx_RMT_t;
+
+static TaskHandle_t distanceSensor_handle = NULL;
+static TaskHandle_t dcMotors_handle = NULL;
+
+static const char* printerTask = "printer"; // TO BE DELETED AFTER DEBUGGING: used to print out msgs to the terminal
 
 /*
 * TODO:
@@ -46,11 +50,7 @@ static IRAM_ATTR bool echoCallBack(rmt_channel_handle_t rx_chan, const rmt_rx_do
     return pdFALSE;
 }
 
-void app_main(void)
-{
-    // Define a task solely dedicated for terminal print outs
-    char* printerTask = pcTaskGetName(NULL);
-
+void distanceSensor_task( void* pvParameters ){
     // - Pins -
     // Reset the pins
     ESP_ERROR_CHECK( gpio_reset_pin(TRIG_pin_num) );
@@ -62,30 +62,6 @@ void app_main(void)
     ESP_ERROR_CHECK( gpio_set_direction(TRIG_pin_num, GPIO_MODE_OUTPUT) );
     ESP_ERROR_CHECK( gpio_set_direction(ECHO_pin_num, GPIO_MODE_INPUT) );
     ESP_ERROR_CHECK( gpio_set_direction(INTERNAL_RGB_LED, GPIO_MODE_OUTPUT) );
-
-    // - PWM for RGB LED -
-    // Configure a timer
-    const ledc_timer_config_t rgb_timer_config = {
-        .speed_mode = LEDC_LOW_SPEED_MODE,
-        .duty_resolution = LEDC_TIMER_8_BIT,
-        .timer_num = 0,
-        .freq_hz = 5000,
-        .clk_cfg = LEDC_USE_XTAL_CLK,
-    };
-    ESP_ERROR_CHECK( ledc_timer_config(&rgb_timer_config) );
-
-    // Configure a channel
-    const ledc_channel_config_t rgb_channel_config = {
-        .gpio_num = INTERNAL_RGB_LED,
-        .speed_mode = LEDC_LOW_SPEED_MODE,
-        .channel = 0,
-        .intr_type = LEDC_INTR_DISABLE,
-        .timer_sel = 0,
-        .duty = 128,
-        .hpoint = 255,
-        .sleep_mode = LEDC_SLEEP_MODE_NO_ALIVE_NO_PD,
-    };
-    ESP_ERROR_CHECK( ledc_channel_config(&rgb_channel_config) );
 
     // - RMT -
     // Define RMT for ECHO
@@ -133,7 +109,9 @@ void app_main(void)
     rmt_symbol_word_t pulseIn_buffer[2] __attribute__((aligned(8)));
 
     // Main loop
-    while(true){
+    while( true ) {
+        // Short pause to avoid starvation
+        vTaskDelay( 100 / portTICK_PERIOD_MS );
 
         // Initiate the RX transaction for RMT
         ESP_ERROR_CHECK( rmt_receive( rx_chan, pulseIn_buffer, sizeof(pulseIn_buffer), &rx_rec_config) );
@@ -146,7 +124,6 @@ void app_main(void)
         // Wait for the ECHO output
         if( xSemaphoreTake( RMT_semphr, portMAX_DELAY ) == pdTRUE ){
             ESP_LOGI( printerTask, "Distance = %d", user_ctx_RMT.distance);
-            // TODO: Conduct the check once in some time to avoid overloading the core
 
 
             // TO BE DELETED AFTER DEBUGGING: Turn on the on-board RGB LED when there is a drone above the sensor
@@ -155,4 +132,41 @@ void app_main(void)
             }
         }
     }
+}
+
+void dcMotors_task( void* pvParameters ){
+    while( true ) {
+        // Placeholder...
+        vTaskDelay(1000 / portTICK_PERIOD_MS);
+        ESP_LOGI( printerTask, "DC Motors task is running..." );
+    }
+}
+
+
+/* * * * *
+ * Main  *
+ * * * * */
+void app_main(void)
+{
+    // Define a task dedicated to the control of ultrasonic distance sensor
+    xTaskCreatePinnedToCore(
+        distanceSensor_task, 
+        "DistanceSensor", 
+        4096, // memory size in bytes
+        NULL, // parameter to pass to function 
+        1, // priority
+        &distanceSensor_handle, // task handle
+        1 // core ID
+    );
+
+    // Define a task dedicated to the control of DC motors
+    xTaskCreatePinnedToCore(
+        dcMotors_task, 
+        "DC_motors", 
+        2048, // memory size in bytes
+        NULL, // parameter to pass to function 
+        1, // priority
+        &dcMotors_handle, // task handle
+        1 // core ID
+    );
 }
