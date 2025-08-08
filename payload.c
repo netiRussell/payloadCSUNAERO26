@@ -14,7 +14,11 @@
 // Macros
 #define TRIG_pin_num 16
 #define ECHO_pin_num 18
-#define INTERNAL_RGB_LED 38
+
+#define MOTOR1_2_15_pin_num 5
+#define MOTOR1_7_10_pin_num 6
+#define MOTOR2_2_15_pin_num 1
+#define MOTOR2_7_10_pin_num 2
 
 // Global structs, handles, and variables
 typedef struct {
@@ -55,13 +59,11 @@ void distanceSensor_task( void* pvParameters ){
     // Reset the pins
     ESP_ERROR_CHECK( gpio_reset_pin(TRIG_pin_num) );
     ESP_ERROR_CHECK( gpio_reset_pin(ECHO_pin_num) );
-    ESP_ERROR_CHECK( gpio_reset_pin(INTERNAL_RGB_LED) );
 
 
     // Set direction for TRIG and ECHO pins
     ESP_ERROR_CHECK( gpio_set_direction(TRIG_pin_num, GPIO_MODE_OUTPUT) );
     ESP_ERROR_CHECK( gpio_set_direction(ECHO_pin_num, GPIO_MODE_INPUT) );
-    ESP_ERROR_CHECK( gpio_set_direction(INTERNAL_RGB_LED, GPIO_MODE_OUTPUT) );
 
     // - RMT -
     // Define RMT for ECHO
@@ -121,25 +123,36 @@ void distanceSensor_task( void* pvParameters ){
         vTaskDelay(10 / portTICK_PERIOD_MS);
         ESP_ERROR_CHECK( gpio_set_level(TRIG_pin_num, 0) );
 
-        // Wait for the ECHO output
+        // [BLOCKING] Wait for the ECHO output
         if( xSemaphoreTake( RMT_semphr, portMAX_DELAY ) == pdTRUE ){
             ESP_LOGI( printerTask, "Distance = %d", user_ctx_RMT.distance);
 
 
-            // TO BE DELETED AFTER DEBUGGING: Turn on the on-board RGB LED when there is a drone above the sensor
+            // Send notification to DC motors to stop them when there is smth in front of the distance sensor
             if( user_ctx_RMT.distance <= 7 ){
-                ESP_LOGI( printerTask, "RGB ON");
+                vTaskNotifyGiveFromISR(dcMotors_handle, NULL);
+                
+                // Suspend distanceSensor_task(itself) as its functionality is not needed anymore
+                vTaskSuspend( NULL );
             }
         }
     }
 }
 
 void dcMotors_task( void* pvParameters ){
-    while( true ) {
-        // Placeholder...
-        vTaskDelay(1000 / portTICK_PERIOD_MS);
-        ESP_LOGI( printerTask, "DC Motors task is running..." );
-    }
+    // Start driving forward
+    // ...
+
+    // [BLOCKING] Wait until ultrasonic distance sends signal to stop
+    ulTaskNotifyTakeIndexed(0, pdTRUE, portMAX_DELAY);
+
+    // Stop DC motors
+    // ...
+
+    ESP_LOGI(printerTask, "!!!$! [IMPORTANT] NOTIFICATION RECEIVED !$!!! -------------");
+
+    // Suspend dcMotors_task(itself) as its functionality is not needed anymore
+    vTaskSuspend( NULL );
 }
 
 
@@ -150,8 +163,8 @@ void app_main(void)
 {
     // Define a task dedicated to the control of ultrasonic distance sensor
     xTaskCreatePinnedToCore(
-        distanceSensor_task, 
-        "DistanceSensor", 
+        distanceSensor_task, // function that contains task's logic
+        "DistanceSensor", // name
         4096, // memory size in bytes
         NULL, // parameter to pass to function 
         1, // priority
@@ -161,8 +174,8 @@ void app_main(void)
 
     // Define a task dedicated to the control of DC motors
     xTaskCreatePinnedToCore(
-        dcMotors_task, 
-        "DC_motors", 
+        dcMotors_task, // function that contains task's logic
+        "DC_motors", // name
         2048, // memory size in bytes
         NULL, // parameter to pass to function 
         1, // priority
