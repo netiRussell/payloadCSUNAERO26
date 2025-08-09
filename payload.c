@@ -12,13 +12,13 @@
 #include "freertos/idf_additions.h"
 
 // Macros
-#define TRIG_pin_num 16
-#define ECHO_pin_num 18
+#define TRIG_pin_num GPIO_NUM_16
+#define ECHO_pin_num GPIO_NUM_18
 
-#define MOTOR1_2_15_pin_num 5
-#define MOTOR1_7_10_pin_num 6
-#define MOTOR2_2_15_pin_num 1
-#define MOTOR2_7_10_pin_num 2
+#define MOTOR1_2_15_pin_num GPIO_NUM_5
+#define MOTOR1_7_10_pin_num GPIO_NUM_6
+#define MOTOR2_2_15_pin_num GPIO_NUM_1
+#define MOTOR2_7_10_pin_num GPIO_NUM_2
 
 // Global structs, handles, and variables
 typedef struct {
@@ -140,14 +140,36 @@ void distanceSensor_task( void* pvParameters ){
 }
 
 void dcMotors_task( void* pvParameters ){
+    // - Pins -
+    // Reset the pins
+    ESP_ERROR_CHECK( gpio_reset_pin(MOTOR1_2_15_pin_num) );
+    ESP_ERROR_CHECK( gpio_reset_pin(MOTOR1_7_10_pin_num) );
+    ESP_ERROR_CHECK( gpio_reset_pin(MOTOR2_2_15_pin_num) );
+    ESP_ERROR_CHECK( gpio_reset_pin(MOTOR2_7_10_pin_num) );
+
+
+    // Set direction for TRIG and ECHO pins
+    ESP_ERROR_CHECK( gpio_set_direction(MOTOR1_2_15_pin_num, GPIO_MODE_OUTPUT) );
+    ESP_ERROR_CHECK( gpio_set_direction(MOTOR1_7_10_pin_num, GPIO_MODE_OUTPUT) );
+    ESP_ERROR_CHECK( gpio_set_direction(MOTOR2_2_15_pin_num, GPIO_MODE_OUTPUT) );
+    ESP_ERROR_CHECK( gpio_set_direction(MOTOR2_7_10_pin_num, GPIO_MODE_OUTPUT) );
+
+    // - Main logic -
     // Start driving forward
-    // ...
+    ESP_ERROR_CHECK( gpio_set_level(MOTOR1_2_15_pin_num, 1) );
+    ESP_ERROR_CHECK( gpio_set_level(MOTOR1_7_10_pin_num, 0) );
+    ESP_ERROR_CHECK( gpio_set_level(MOTOR2_2_15_pin_num, 1) );
+    ESP_ERROR_CHECK( gpio_set_level(MOTOR2_7_10_pin_num, 0) );
 
     // [BLOCKING] Wait until ultrasonic distance sends signal to stop
     ulTaskNotifyTakeIndexed(0, pdTRUE, portMAX_DELAY);
 
     // Stop DC motors
-    // ...
+    ESP_ERROR_CHECK( gpio_set_level(MOTOR1_2_15_pin_num, 0) );
+    ESP_ERROR_CHECK( gpio_set_level(MOTOR1_7_10_pin_num, 0) );
+    ESP_ERROR_CHECK( gpio_set_level(MOTOR2_2_15_pin_num, 0) );
+    ESP_ERROR_CHECK( gpio_set_level(MOTOR2_7_10_pin_num, 0) );
+
 
     ESP_LOGI(printerTask, "!!!$! [IMPORTANT] NOTIFICATION RECEIVED !$!!! -------------");
 
