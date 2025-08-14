@@ -12,6 +12,8 @@
 #include "freertos/idf_additions.h"
 
 // Macros
+#define sensorDrone_clearance_cm 7
+
 #define TRIG_pin_num GPIO_NUM_16
 #define ECHO_pin_num GPIO_NUM_18
 
@@ -59,7 +61,6 @@ void distanceSensor_task( void* pvParameters ){
     // Reset the pins
     ESP_ERROR_CHECK( gpio_reset_pin(TRIG_pin_num) );
     ESP_ERROR_CHECK( gpio_reset_pin(ECHO_pin_num) );
-
 
     // Set direction for TRIG and ECHO pins
     ESP_ERROR_CHECK( gpio_set_direction(TRIG_pin_num, GPIO_MODE_OUTPUT) );
@@ -127,9 +128,8 @@ void distanceSensor_task( void* pvParameters ){
         if( xSemaphoreTake( RMT_semphr, portMAX_DELAY ) == pdTRUE ){
             ESP_LOGI( printerTask, "Distance = %d", user_ctx_RMT.distance);
 
-
             // Send notification to DC motors to stop them when there is smth in front of the distance sensor
-            if( user_ctx_RMT.distance <= 7 ){
+            if( user_ctx_RMT.distance <= sensorDrone_clearance_cm ){
                 vTaskNotifyGiveFromISR(dcMotors_handle, NULL);
                 
                 // Suspend distanceSensor_task(itself) as its functionality is not needed anymore
@@ -147,8 +147,7 @@ void dcMotors_task( void* pvParameters ){
     ESP_ERROR_CHECK( gpio_reset_pin(MOTOR2_2_15_pin_num) );
     ESP_ERROR_CHECK( gpio_reset_pin(MOTOR2_7_10_pin_num) );
 
-
-    // Set direction for TRIG and ECHO pins
+    // Set direction for the pins that will be used in H-bridges
     ESP_ERROR_CHECK( gpio_set_direction(MOTOR1_2_15_pin_num, GPIO_MODE_OUTPUT) );
     ESP_ERROR_CHECK( gpio_set_direction(MOTOR1_7_10_pin_num, GPIO_MODE_OUTPUT) );
     ESP_ERROR_CHECK( gpio_set_direction(MOTOR2_2_15_pin_num, GPIO_MODE_OUTPUT) );
@@ -161,7 +160,7 @@ void dcMotors_task( void* pvParameters ){
     ESP_ERROR_CHECK( gpio_set_level(MOTOR2_2_15_pin_num, 1) );
     ESP_ERROR_CHECK( gpio_set_level(MOTOR2_7_10_pin_num, 0) );
 
-    // [BLOCKING] Wait until ultrasonic distance sends signal to stop
+    // [BLOCKING] Wait until ultrasonic distance sensor sends signal to stop
     ulTaskNotifyTakeIndexed(0, pdTRUE, portMAX_DELAY);
 
     // Stop DC motors
@@ -171,7 +170,7 @@ void dcMotors_task( void* pvParameters ){
     ESP_ERROR_CHECK( gpio_set_level(MOTOR2_7_10_pin_num, 0) );
 
 
-    ESP_LOGI(printerTask, "!!!$! [IMPORTANT] NOTIFICATION RECEIVED !$!!! -------------");
+    ESP_LOGI(printerTask, "------------- !!!$! [IMPORTANT] NOTIFICATION RECEIVED !$!!! -------------");
 
     // Suspend dcMotors_task(itself) as its functionality is not needed anymore
     vTaskSuspend( NULL );
@@ -198,10 +197,11 @@ void app_main(void)
     xTaskCreatePinnedToCore(
         dcMotors_task, // function that contains task's logic
         "DC_motors", // name
-        2048, // memory size in bytes
+        4096, // memory size in bytes
         NULL, // parameter to pass to function 
         1, // priority
         &dcMotors_handle, // task handle
         1 // core ID
     );
 }
+
