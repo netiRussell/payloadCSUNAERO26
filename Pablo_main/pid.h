@@ -17,7 +17,7 @@ void pillarPID(float heading = 0)
   if(speedOutLeft > maxSpeed) speedOutLeft = maxSpeed;
   int speedOutRight = speedOutLeft - 1500;
 
-  while(abs(tempCam()) > heading + DEADZONE)
+  if(abs(tempCam()) > heading + DEADZONE)
   {
     driveControl(speedOutLeft,speedOutRight);
   }

@@ -23,6 +23,11 @@ void findPillar()
   Serial.println("Pillar found");
 }
 
+void gearAvoidance(int position)
+{
+  
+}
+
 void captureRoutine()
 {
   IrReceiver.resume();
