@@ -1,6 +1,7 @@
 #include "motor_control.h"
 #include "ir_receiver.h"
 #include "pid.h"
+#include "eyes.h"
 
 void lineSearch(bool sensorIn)
 {
@@ -19,7 +20,7 @@ void lineSearch(bool sensorIn)
 
 void findPillar()
 {
-  pillarPID(tempCam());
+  pillarPID(eyes_get_yellow_offset_x());
   Serial.println("Pillar found");
 }
 
