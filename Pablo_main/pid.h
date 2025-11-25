@@ -1,4 +1,4 @@
-#include "camera.h"
+#include "eyes.h"
 
 float p_mod = 0.1;//TUNE
 float p = 0;
@@ -12,12 +12,18 @@ void pillarPID(float heading = 0)
   p = -p_mod * h; //proportionality
   maxSpeed = h/max_mod; //limiter
 
-  int speedMod = ((h/tempCam())*p);
-  int speedOut = 1500+speedMod;
-  if(speedOutLeft > maxSpeed) speedOutLeft = maxSpeed;
-  int speedOutRight = speedOutLeft - 1500;
+  int16_t offset = eyes_get_yellow_offset_x();
+  if (offset == 0) offset = 1; 
 
-  if(abs(tempCam()) > heading + DEADZONE)
+  int speedMod = ((h/offset)*p);
+  int speedOut = 1500+speedMod;
+  
+  int speedOutLeft = speedOut;
+  if(speedOutLeft > maxSpeed) speedOutLeft = maxSpeed;
+  
+  int speedOutRight = speedOutLeft - 1500; 
+
+  if(abs(eyes_get_yellow_offset_x()) > heading + DEADZONE)
   {
     driveControl(speedOutLeft,speedOutRight);
   }

@@ -9,6 +9,8 @@ void setup()
   //ledStart();
   setRing(2,2,2,0);
 
+  eyes_init(); // Initialize vision system
+
   leftDrive.attach(3);
   rightDrive.attach(4);
   pinMode(lineID,INPUT);
