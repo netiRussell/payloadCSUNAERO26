@@ -12,13 +12,16 @@
  * - Offset: pixels from center (negative=left, positive=right)
  */
 
+ /*
+ * How to use this file:
+ * 1. Upload this file to the ESP32 include eyes.h
+ * 2. Open Viewer.py to see output 
+ */
 #include <Arduino.h>
 #include "eyes.h"
 
-// ============================================================================
 // SEND FRAME TO LAPTOP
-// ============================================================================
-void send_visualization_frame(EyesResult* result) {
+void send_visualization_frame() {
     // Send header
     const char hdr[3] = {'V', 'I', 'Z'};
     Serial.write((const uint8_t*)hdr, 3);
@@ -53,48 +56,47 @@ void send_visualization_frame(EyesResult* result) {
     metadata.height = EYES_IMG_HEIGHT;
 
     // Yellow blob
-    metadata.yellow_on_screen = result->yellow_found;
-    metadata.yellow_pixels_from_center = result->yellow_offset_x;
-    metadata.yellow_centroid_x = result->yellow_offset_x + (EYES_IMG_WIDTH / 2);
+    metadata.yellow_on_screen = eyes_get_yellow_found();
+    metadata.yellow_pixels_from_center = eyes_get_yellow_offset_x();
+    metadata.yellow_centroid_x = eyes_get_yellow_offset_x() + (EYES_IMG_WIDTH / 2);
     metadata.yellow_centroid_y = 0;
-    metadata.yellow_area = result->yellow_area;
+    metadata.yellow_area = eyes_get_yellow_area();
 
     // Pink blobs
-    metadata.num_pink_detected = result->pink_count;
+    metadata.num_pink_detected = eyes_get_pink_count();
 
-    if (result->pink_count >= 1) {
+    if (eyes_get_pink_count() >= 1) {
         metadata.pink0_on_screen = 1;
-        metadata.pink0_pixels_from_center = result->pink_offset_x[0];
-        metadata.pink0_centroid_x = result->pink_offset_x[0] + (EYES_IMG_WIDTH / 2);
+        metadata.pink0_pixels_from_center = eyes_get_pink_offset_x(0);
+        metadata.pink0_centroid_x = eyes_get_pink_offset_x(0) + (EYES_IMG_WIDTH / 2);
         metadata.pink0_centroid_y = 0;
-        metadata.pink0_area = result->pink_area[0];
+        metadata.pink0_area = eyes_get_pink_area(0);
     }
 
-    if (result->pink_count >= 2) {
+    if (eyes_get_pink_count() >= 2) {
         metadata.pink1_on_screen = 1;
-        metadata.pink1_pixels_from_center = result->pink_offset_x[1];
-        metadata.pink1_centroid_x = result->pink_offset_x[1] + (EYES_IMG_WIDTH / 2);
+        metadata.pink1_pixels_from_center = eyes_get_pink_offset_x(1);
+        metadata.pink1_centroid_x = eyes_get_pink_offset_x(1) + (EYES_IMG_WIDTH / 2);
         metadata.pink1_centroid_y = 0;
-        metadata.pink1_area = result->pink_area[1];
+        metadata.pink1_area = eyes_get_pink_area(1);
     }
 
-    metadata.frame_num = result->frame_number;
-    metadata.process_ms = result->process_time_ms;
+    metadata.frame_num = eyes_get_frame_number();
+    metadata.process_ms = eyes_get_process_time_ms();
 
     Serial.write((uint8_t*)&metadata, sizeof(metadata));
 
     // Send RAW frame (if available)
-    if (result->framebuffer != NULL) {
-        Serial.write(result->framebuffer->buf, EYES_IMG_WIDTH * EYES_IMG_HEIGHT * 2);
+    camera_fb_t* fb = eyes_get_framebuffer();
+    if (fb != NULL) {
+        Serial.write(fb->buf, EYES_IMG_WIDTH * EYES_IMG_HEIGHT * 2);
     }
 
     Serial.flush();
     Serial.println();
 }
 
-// ============================================================================
 // MAIN
-// ============================================================================
 bool auto_mode = false;
 
 void setup() {
@@ -119,7 +121,6 @@ void setup() {
         while(1) { delay(1000); }
     }
 
-    // Initialize eyes library (handles camera init and everything)
     if (!eyes_init()) {
         Serial.println("FATAL: Eyes library initialization failed!");
         Serial.println("Try: Power cycle ESP32 (unplug/replug USB)");
@@ -141,26 +142,25 @@ void loop() {
             if (line.equalsIgnoreCase("SNAP")) {
                 Serial.println("SNAP command received");
 
-                // Simple API: Just call eyes_snap()!
-                EyesResult* result = eyes_snap();
+                eyes_snap();
 
-                if (result->framebuffer != NULL) {
-                    send_visualization_frame(result);
+                if (eyes_get_framebuffer() != NULL) {
+                    send_visualization_frame();
 
                     // Print detection summary
-                    Serial.printf("Frame %d | Process=%dms\n", result->frame_number, result->process_time_ms);
+                    Serial.printf("Frame %d | Process=%dms\n", eyes_get_frame_number(), eyes_get_process_time_ms());
 
-                    if (result->yellow_found) {
+                    if (eyes_get_yellow_found()) {
                         Serial.printf("  Yellow: FOUND | offset=%d px (area=%d)\n",
-                                     result->yellow_offset_x, result->yellow_area);
+                                     eyes_get_yellow_offset_x(), eyes_get_yellow_area());
                     } else {
                         Serial.println("  Yellow: NOT FOUND");
                     }
 
-                    Serial.printf("  Pink: %d blob(s) detected\n", result->pink_count);
-                    for (int i = 0; i < result->pink_count; i++) {
+                    Serial.printf("  Pink: %d blob(s) detected\n", eyes_get_pink_count());
+                    for (int i = 0; i < eyes_get_pink_count(); i++) {
                         Serial.printf("    Pink[%d]: offset=%d px (area=%d)\n",
-                                     i, result->pink_offset_x[i], result->pink_area[i]);
+                                     i, eyes_get_pink_offset_x(i), eyes_get_pink_area(i));
                     }
 
                     // Release frame buffer
@@ -190,11 +190,10 @@ void loop() {
 
             digitalWrite(LED_BUILTIN, LOW);
 
-            // Simple API: Just call eyes_snap()!
-            EyesResult* result = eyes_snap();
+            eyes_snap();
 
-            if (result->framebuffer != NULL) {
-                send_visualization_frame(result);
+            if (eyes_get_framebuffer() != NULL) {
+                send_visualization_frame();
                 eyes_release();
             }
 

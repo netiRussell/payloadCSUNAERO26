@@ -132,6 +132,14 @@ camera_fb_t* eyes_get_framebuffer() {
     return eyes_result.framebuffer;
 }
 
+uint32_t eyes_get_frame_number() {
+    return eyes_result.frame_number;
+}
+
+uint32_t eyes_get_process_time_ms() {
+    return eyes_result.process_time_ms;
+}
+
 // RGB <-> HSV CONVERSION
 inline void eyes_rgb_to_hsv(uint8_t r, uint8_t g, uint8_t b, uint8_t *h, uint8_t *s, uint8_t *v) {
     uint8_t max_val = max(r, max(g, b));

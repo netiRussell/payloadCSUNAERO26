@@ -1,5 +1,5 @@
 """
-PHASE 1: Visual Verification Viewer with Text Output
+Visual Verification Viewer for eyes.h library. Requires laptop.ino to be uploaded to ESP32.
 
 Usage:
 1. Upload phase1_verification_wraparound.ino to ESP32
@@ -9,10 +9,10 @@ Usage:
 5. Type 'stop' to stop auto mode
 6. Type 'q' to quit
 
-Features:
-- Live visualization of detected blobs
-- Clean text output showing offsets and areas
-- Multiple viewing modes (press 1, 2, 3)
+Featured Modes: 
+1. Raw
+2. Overlays
+3. Mask
 """
 
 import serial
@@ -276,24 +276,24 @@ def on_key_press(event):
         auto_mode = not auto_mode
         cmd = "AUTO" if auto_mode else "STOP"
         ser_global.write(f"{cmd}\n".encode())
-        print(f"🎥 Auto mode: {'ON' if auto_mode else 'OFF'}")
+        print(f"Auto mode: {'ON' if auto_mode else 'OFF'}")
     elif event.key == 's':  # Stop
         auto_mode = False
         ser_global.write(b"STOP\n")
-        print("⏹ Stopped")
+        print("Stopped")
     elif event.key == '1':  # Raw view
         display_mode = 1
-        print("👁 Mode: Raw Camera")
+        print("Mode: Raw Camera")
     elif event.key == '2':  # Overlay view
         display_mode = 2
-        print("👁 Mode: Detection Overlays")
+        print("Mode: Detection Overlays")
     elif event.key == '3':  # Mask view
         display_mode = 3
-        print("👁 Mode: Color Mask Only")
+        print("Mode: Color Mask Only")
     elif event.key == 'q':  # Quit
         running = False
         plt.close('all')
-        print("👋 Quitting...")
+        print("Quitting...")
 
 def update_plot(frame_num):
     """Update matplotlib display"""
