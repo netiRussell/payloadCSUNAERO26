@@ -4,6 +4,7 @@
 
 void setup()
 {
+  Adafruit_NeoPixel pixels(NUMPIXELS, PIN, NEO_GRB + NEO_KHZ800);
   pixels.begin();
   Serial.begin(115200);
   //ledStart();
@@ -11,8 +12,8 @@ void setup()
 
   eyes_init(); // Initialize vision system
 
-  leftDrive.attach(3);
-  rightDrive.attach(4);
+  leftDrive.attach(4);
+  rightDrive.attach(5);
   pinMode(lineID,INPUT);
   IrReceiver.begin(IRpin, ENABLE_LED_FEEDBACK);
 }
@@ -20,10 +21,16 @@ void setup()
 void loop()
 {
   setRing(255,255,255,0);
+  
 
-  //Motor Test:
-  rampUp(1500,1350,-20);
-  delay(4000);
-  driveControl(1350,1750);
-  delay(10000);
+  if(IrReceiver.decode())
+  {
+    if(IrReceiver.decodedIRData.decodedRawData == 0xFC03EF00)
+    {
+      lineSearch(lineVal());
+      IrReceiver.resume();
+    }
+  }
+  else
+  driveControl(0,0);
 }

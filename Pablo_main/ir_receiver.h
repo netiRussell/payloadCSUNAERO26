@@ -1,6 +1,6 @@
 #include <IRremote.hpp>
 
-#define IRpin 5
+#define IRpin 3
 
 IRRawDataType delivery = 0x03;
 IRRawDataType capture = 0x02;

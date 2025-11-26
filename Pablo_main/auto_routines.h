@@ -5,13 +5,15 @@
 
 void lineSearch(bool sensorIn)
 {
+  driveControl(-20,-20);
   if(sensorIn == 0)
   {
-    rampUp(1500,1350,-20);
+    
+    //driveControl(1580,1580);
   }
   else if(sensorIn == 1)
   {
-    driveControl(1500,1500);
+    driveControl(0,0);
     delay(500);
     Serial.println("On line");
     IrReceiver.resume();
@@ -20,7 +22,7 @@ void lineSearch(bool sensorIn)
 
 void findPillar()
 {
-  pillarPID(eyes_get_yellow_offset_x());
+  pillarPID(0);
   Serial.println("Pillar found");
 }
 
