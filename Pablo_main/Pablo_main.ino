@@ -23,14 +23,14 @@ void loop()
   setRing(255,255,255,0);
   
 
-  if(IrReceiver.decode())
-  {
-    if(IrReceiver.decodedIRData.decodedRawData == 0xFC03EF00)
-    {
+  //if(IrReceiver.decode())
+  //{
+    //if(IrReceiver.decodedIRData.decodedRawData == 0xFC03EF00)
+    //{
       lineSearch(lineVal());
-      IrReceiver.resume();
-    }
-  }
-  else
-  driveControl(0,0);
+      //IrReceiver.resume();
+    //}
+  //}
+  //else
+  //driveControl(0,0);
 }

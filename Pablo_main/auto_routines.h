@@ -5,7 +5,7 @@
 
 void lineSearch(bool sensorIn)
 {
-  driveControl(-20,-20);
+  driveControl(-100,-100);
   if(sensorIn == 0)
   {
     

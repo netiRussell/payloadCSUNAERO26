@@ -5,8 +5,8 @@ Servo rightDrive;
 
 void driveControl(int left, int right) //0 is STOP. -100 is REV. 100 is FOR
 {
-  left = (5*left) + 1500;
-  right = (5*right) + 1500;
+  left = (-5*left) + 1500;
+  right = (-5*right) + 1500;
   leftDrive.writeMicroseconds(left);
   rightDrive.writeMicroseconds(right);
 }
