@@ -504,6 +504,14 @@ void eyes_process_frame(camera_fb_t *fb) {
 
 // CAMERA INITIALIZATION
 bool eyes_init_camera() {
+    // Check PSRAM
+    if (!psramFound()) {
+        Serial.println("Eyes: ERROR - PSRAM not found! Camera requires PSRAM.");
+        Serial.println("Eyes: Go to Tools > PSRAM and enable it!");
+        return false;
+    }
+    Serial.printf("Eyes: PSRAM found - %d bytes free\n", ESP.getFreePsram());
+
     camera_config_t config;
     config.ledc_channel = LEDC_CHANNEL_0;
     config.ledc_timer = LEDC_TIMER_0;
@@ -523,18 +531,20 @@ bool eyes_init_camera() {
     config.pin_sscb_scl = EYES_SIOC_GPIO_NUM;
     config.pin_pwdn = EYES_PWDN_GPIO_NUM;
     config.pin_reset = EYES_RESET_GPIO_NUM;
-    config.xclk_freq_hz = 20000000;
+    config.xclk_freq_hz = 20000000;  // Standard 20MHz for OV3660
     config.pixel_format = PIXFORMAT_RGB565;
     config.frame_size = FRAMESIZE_QQVGA;
     config.jpeg_quality = 12;
-    config.fb_count = 1;
-    config.grab_mode = CAMERA_GRAB_LATEST;
+    config.fb_count = 2;
+    config.grab_mode = CAMERA_GRAB_WHEN_EMPTY; // Wait for frame to be ready
+    config.fb_location = CAMERA_FB_IN_PSRAM;
 
     esp_err_t err = esp_camera_init(&config);
     if (err != ESP_OK) {
         Serial.printf("Eyes: Camera init failed: 0x%x\n", err);
         return false;
     }
+    delay(250); // Allow sensor to stabilize
 
     sensor_t *s = esp_camera_sensor_get();
 
