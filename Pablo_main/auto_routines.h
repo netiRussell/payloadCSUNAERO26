@@ -5,16 +5,15 @@
 
 void lineSearch(bool sensorIn)
 {
-  driveControl(-100,-100);
   if(sensorIn == 0)
   {
-    
-    //driveControl(1580,1580);
+    driveControl(-25,-25);
+    Serial.println("not on line");
   }
   else if(sensorIn == 1)
   {
     driveControl(0,0);
-    delay(500);
+    delay(100);
     Serial.println("On line");
     IrReceiver.resume();
   }
@@ -22,8 +21,12 @@ void lineSearch(bool sensorIn)
 
 void findPillar()
 {
-  pillarPID(0);
-  Serial.println("Pillar found");
+  if(!pillarPID(0))
+  {
+    Serial.println("Pillar found");
+  }
+
+  driveControl(30,30);
 }
 
 void gearAvoidance(int position)
@@ -34,5 +37,5 @@ void gearAvoidance(int position)
 void captureRoutine()
 {
   IrReceiver.resume();
-  rampUp(1500,1650,10);
+  if(!rampUp(0,50,10)) driveControl(50,50);
 }

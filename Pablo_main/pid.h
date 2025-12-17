@@ -6,8 +6,10 @@ float maxSpeed = 0;
 float max_mod = 1.4;//TUNE
 #define DEADZONE 5
 
-void pillarPID(float heading = 0)
+bool pillarPID(float heading = 0)
 {
+  eyes_snap();
+
   int h = fabs(heading);
   p = -p_mod * h; //proportionality
   maxSpeed = h/max_mod; //limiter
@@ -25,7 +27,14 @@ void pillarPID(float heading = 0)
 
   if(abs(eyes_get_yellow_offset_x()) > heading + DEADZONE)
   {
-    driveControl(speedOutLeft,speedOutRight);
+    //driveControl(speedOutLeft,speedOutRight);
+    leftDrive.writeMicroseconds(speedOutLeft);
+    rightDrive.writeMicroseconds(speedOutRight);
+    return true;
   }
-  driveControl(1500,1500);
+  else
+  {
+    driveControl(0,0);
+    return false;
+  }
 }

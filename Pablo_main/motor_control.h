@@ -13,20 +13,21 @@ void driveControl(int left, int right) //0 is STOP. -100 is REV. 100 is FOR
 
 bool ramping = false;
 
-void rampUp(int initSpeed, int finalSpeed, int cycles) //Slow initSpeed, high finalSpeed, modulate cycles as needed
+int currentSpeed = 0;
+
+bool rampUp(int initSpeed, int finalSpeed, int cycles) //Slow initSpeed, high finalSpeed, modulate cycles as needed
 {
-  static int currentSpeed = 0;
   currentSpeed = initSpeed + currentSpeed + cycles;
   if(abs(currentSpeed - finalSpeed) > 0)
   {
    driveControl(currentSpeed,currentSpeed);
-   ramping = true;
+   return true;
    delay(10);
   }
   else
   {
     driveControl(finalSpeed,finalSpeed);
     //currentSpeed = 0;
-    ramping = false;
+    return false;
   }
 }
