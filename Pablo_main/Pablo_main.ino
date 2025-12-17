@@ -11,8 +11,6 @@ void setup()
   pixels.begin();
   //ledStart();
   setRing(2,2,2,0);
-
-<<<<<<< HEAD
    Serial.println("Initializing camera...");
   if (!eyes_init()) {
     Serial.println("CAMERA INIT FAILED!");
@@ -23,17 +21,6 @@ void setup()
   delay(2000); // Give camera time to stabilize
   Serial.println("Camera ready!");
   }
-=======
-  Serial.println("Initializing camera...");
-  if (!eyes_init()) {
-    Serial.println("CAMERA INIT FAILED!");
-    setRing(255, 0, 0, 0); // RED for error
-    while(1); // Stop here if camera fails
-  }
-  delay(2000); // Give camera time to stabilize
-  Serial.println("Camera ready!");
-
->>>>>>> 18e9b8d679406efa51b03f1bccffe69e7ed8e12b
 
   leftDrive.attach(4);
   rightDrive.attach(5);
@@ -118,8 +105,4 @@ void loop()
   //lineSearch(lineVal());
 
   findPillar();
-
-=======
-  testDetection();
->>>>>>> 18e9b8d679406efa51b03f1bccffe69e7ed8e12b
 }
