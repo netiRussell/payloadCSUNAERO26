@@ -4,12 +4,15 @@
 
 void setup()
 {
+  Serial.begin(115200);
+  delay(1000); // Give serial time to initialize
+
   Adafruit_NeoPixel pixels(NUMPIXELS, PIN, NEO_GRB + NEO_KHZ800);
   pixels.begin();
-  Serial.begin(115200);
   //ledStart();
   setRing(2,2,2,0);
 
+<<<<<<< HEAD
    Serial.println("Initializing camera...");
   if (!eyes_init()) {
     Serial.println("CAMERA INIT FAILED!");
@@ -20,6 +23,17 @@ void setup()
   delay(2000); // Give camera time to stabilize
   Serial.println("Camera ready!");
   }
+=======
+  Serial.println("Initializing camera...");
+  if (!eyes_init()) {
+    Serial.println("CAMERA INIT FAILED!");
+    setRing(255, 0, 0, 0); // RED for error
+    while(1); // Stop here if camera fails
+  }
+  delay(2000); // Give camera time to stabilize
+  Serial.println("Camera ready!");
+
+>>>>>>> 18e9b8d679406efa51b03f1bccffe69e7ed8e12b
 
   leftDrive.attach(4);
   rightDrive.attach(5);
@@ -50,8 +64,31 @@ void testDetection()
   delay(1000);  // Wait 1 second
 }
 
+//takes picture every second and changes LED based on detection
+void testDetection()
+{
+  eyes_snap();  
+
+  if (eyes_get_yellow_found()) {
+    setRing(255, 255, 0, 0);  
+    Serial.println("YELLOW detected!");
+  }
+  else if (eyes_get_pink_count() > 0) {
+    setRing(255, 20, 147, 0);  
+    Serial.println("PINK detected!");
+  }
+  else {
+    setRing(255, 255, 255, 0); 
+    Serial.println("Nothing detected");
+  }
+
+  eyes_release();  
+  delay(1000);  // Wait 1 second
+}
+
 void loop()
 {
+<<<<<<< HEAD
   setRing(255,255,255,0);
  
   if(IrReceiver.decode())
@@ -82,4 +119,7 @@ void loop()
 
   findPillar();
 
+=======
+  testDetection();
+>>>>>>> 18e9b8d679406efa51b03f1bccffe69e7ed8e12b
 }
