@@ -79,7 +79,7 @@ void loop()
     }
   }
 
-  //lineSearch(lineVal());
+  lineSearch(lineVal());
 
-  findPillar();
+  //findPillar();
 }
