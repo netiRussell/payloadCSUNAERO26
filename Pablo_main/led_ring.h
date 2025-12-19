@@ -17,6 +17,11 @@ void setRing(uint8_t r, uint8_t g, uint8_t b, int delayVal) //Set RGB vals to 0-
   }
 }
 
+void ledIdle()
+{
+  setRing(10,10,10,0);
+}
+
 void ledStart() //Premade LED boot up routine
 {
   setRing(255,0,0,200);

@@ -2,6 +2,7 @@
 #include "ir_receiver.h"
 #include "pid.h"
 #include "eyes.h"
+#include "led_ring.h"
 
 void lineSearch(bool sensorIn)
 {
@@ -21,12 +22,25 @@ void lineSearch(bool sensorIn)
 
 void findPillar()
 {
-  if(!pillarPID(0))
-  {
-    Serial.println("Pillar found");
-  }
+  setRing(255,255,255,0);
 
-  driveControl(30,30);
+  if(eyes_get_yellow_found())
+  {
+    if(pillarPID(0))
+    {
+      Serial.println("Pillar not centered.");
+    }
+    else
+    {
+      Serial.println("Pillar centered");
+      driveControl(20,20);
+      setRing(255,255,0,0);
+    }
+  }
+  else
+  {
+    driveControl(-20,20);
+  }
 }
 
 void gearAvoidance(int position)

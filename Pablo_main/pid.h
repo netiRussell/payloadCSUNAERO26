@@ -4,7 +4,7 @@ float p_mod = 0.1;//TUNE
 float p = 0;
 float maxSpeed = 0;
 float max_mod = 1.4;//TUNE
-#define DEADZONE 5
+#define DEADZONE 1
 
 bool pillarPID(float heading = 0)
 {
@@ -16,7 +16,7 @@ bool pillarPID(float heading = 0)
 
   int16_t offset = eyes_get_yellow_offset_x();
   if (offset == 0) offset = 1; 
-
+  Serial.println(offset);
   int speedMod = ((h/offset)*p);
   int speedOut = 1500+speedMod;
   
@@ -37,4 +37,6 @@ bool pillarPID(float heading = 0)
     driveControl(0,0);
     return false;
   }
+  eyes_release();
+  delay(500);
 }
