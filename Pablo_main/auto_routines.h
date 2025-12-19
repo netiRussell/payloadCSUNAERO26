@@ -22,10 +22,13 @@ void lineSearch(bool sensorIn)
 
 void findPillar()
 {
-  setRing(255,255,255,0);
+  eyes_snap(); // Capture frame to check for yellow
+  bool found = eyes_get_yellow_found();
+  eyes_release(); // Release immediately; pillarPID will take its own picture if needed
 
-  if(eyes_get_yellow_found())
+  if(found)
   {
+    setRing(255,255,0,0); // Yellow
     if(pillarPID(0))
     {
       Serial.println("Pillar not centered.");
@@ -33,13 +36,13 @@ void findPillar()
     else
     {
       Serial.println("Pillar centered");
-      driveControl(20,20);
-      setRing(255,255,0,0);
+      driveControl(20,20); // Drive forward towards it
     }
   }
   else
   {
-    driveControl(-20,20);
+    setRing(255,255,255,0); // White
+    driveControl(-20,20); // Spin to find it
   }
 }
 

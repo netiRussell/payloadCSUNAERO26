@@ -44,10 +44,10 @@ void testDetection()
     setRing(255, 255, 0, 0);
     Serial.println("YELLOW detected!");
   }
-  else if (eyes_get_pink_count() > 0) {
-    setRing(255, 20, 147, 0);
-    Serial.println("PINK detected!");
-  }
+  //else if (eyes_get_pink_count() > 0) {
+  //  setRing(255, 20, 147, 0);
+  //  Serial.println("PINK detected!");
+ // }
   else {
     setRing(255, 255, 255, 0); 
     Serial.println("Nothing detected");
