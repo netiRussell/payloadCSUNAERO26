@@ -87,7 +87,7 @@ void loop()
   //testDetection();
   //lineSearch(lineVal());
 
-  findPillar();
+  //findPillar();
 
   //Serial.println(eyes_get_yellow_offset_x());
 }
