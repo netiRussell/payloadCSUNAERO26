@@ -16,21 +16,21 @@ bool pillarPID(float heading = 0)
 
   int16_t offset = eyes_get_yellow_offset_x();
   if (offset == 0) offset = 1;
-  Serial.println(offset);
+  Serial.print("offset: ");
+  Serial.println( offset);
   int speedMod = ((h/offset)*p);
-  int speedOut = 1500+speedMod;
 
-  int speedOutLeft = speedOut;
+  int speedOutLeft = speedMod;
   if(speedOutLeft > maxSpeed) speedOutLeft = maxSpeed;
 
-  int speedOutRight = speedOutLeft - 1500;
+  int speedOutRight = -speedOutLeft;
 
   bool result;
   if(abs(eyes_get_yellow_offset_x()) > heading + DEADZONE)
   {
-    //driveControl(speedOutLeft,speedOutRight);
-    leftDrive.writeMicroseconds(speedOutLeft);
-    rightDrive.writeMicroseconds(speedOutRight);
+    driveControl(speedOutLeft,speedOutRight);
+    //leftDrive.writeMicroseconds(speedOutLeft);
+    //rightDrive.writeMicroseconds(speedOutRight);
     result = true;
   }
   else
@@ -38,6 +38,7 @@ bool pillarPID(float heading = 0)
     driveControl(0,0);
     result = false;
   }
+  
 
   eyes_release();
   return result;

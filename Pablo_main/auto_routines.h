@@ -36,6 +36,8 @@ void findPillar()
     else
     {
       Serial.println("Pillar centered");
+      driveControl(0,0);
+      delay(10);
       driveControl(15,15); // Drive forward towards it
     }
   }
