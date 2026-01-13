@@ -4,6 +4,7 @@
 #include "eyes.h"
 #include "led_ring.h"
 
+
 void lineSearch(bool sensorIn)
 {
   if(sensorIn == 0)
@@ -50,7 +51,30 @@ void findPillar()
 
 void gearAvoidance(int position)
 {
-  
+  eyes_snap(); // Capture frame to check for pink
+  uint8_t found = eyes_get_pink_count(); //equals total of discovered pink targets
+  uint16_t offset = eyes_get_pink_offset_x(2); //equals the offset of the pink targets
+  eyes_release(); // Release immediately; pillarPID will take its own picture if needed
+
+  #define gearTolerance 50; //TODO: adjust accordingly
+  position = position + gearTolerance;
+
+  if(found > 0 && offset < position)
+  {
+    driveControl(-25,25);
+    delay(100);
+    driveControl(0,0);
+    delay(100);
+    driveControl(15,15);
+    delay(100);
+    driveControl(0,0);
+    delay(100);
+    driveControl(25,-25);
+
+    eyes_snap();
+    found = eyes_get_pink_count();
+    eyes_release();
+  }
 }
 
 void captureRoutine()
