@@ -29,7 +29,8 @@ void findPillar()
 
   if(found)
   {
-    setRing(255,255,0,0); // Yellow
+    pixels.setPixelColor(1,pixels.Color(255,255,0));
+    //setRing(255,255,0,0); // Yellow
     if(pillarPID(0))
     {
       Serial.println("Pillar not centered.");
@@ -38,14 +39,14 @@ void findPillar()
     {
       Serial.println("Pillar centered");
       driveControl(0,0);
-      delay(10);
-      driveControl(15,15); // Drive forward towards it
+     // delay(10);
+      driveControl(20,20); // Drive forward towards it
     }
   }
   else
   {
     setRing(255,255,255,0); // White
-    driveControl(-25,25); // Spin to find it
+    driveControl(-20,20); // Spin to find it
   }
 }
 

@@ -1,11 +1,10 @@
 #include "eyes.h"
 
-float p_mod = 0.1;//TUNE
+float p_mod = 0.25;//TUNE
 float p = 0;
 float maxSpeed = 0;
-float max_mod = 1.4;//TUNE
-#define DEADZONE 1
-
+float max_mod = 1.6;//TUNE
+#define DEADZONE 10
 bool pillarPID(float heading = 0)
 {
   eyes_snap();

@@ -41,7 +41,8 @@ void testDetection()
   eyes_snap();
 
   if (eyes_get_yellow_found()) {
-    setRing(255, 255, 0, 0);
+    //setRing(255, 255, 0, 0);
+    pixels.setPixelColor(1,pixels.Color(255,255,0));
     Serial.println("YELLOW detected!");
   }
   //else if (eyes_get_pink_count() > 0) {
