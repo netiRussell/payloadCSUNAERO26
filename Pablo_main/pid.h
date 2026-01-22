@@ -1,9 +1,9 @@
 #include "eyes.h"
 
-float p_mod = 0.25;//TUNE
+float p_mod = 0.3;//TUNE
 float p = 0;
 float maxSpeed = 0;
-float max_mod = 1.6;//TUNE
+float max_mod = 2;//TUNE
 #define DEADZONE 10
 bool pillarPID(float heading = 0)
 {

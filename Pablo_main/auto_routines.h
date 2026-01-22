@@ -40,11 +40,13 @@ void findPillar()
       Serial.println("Pillar centered");
       driveControl(0,0);
      // delay(10);
-      driveControl(20,20); // Drive forward towards it
+     // driveControl(20,20); // Drive forward towards it
+     rampUp(0,40,2);
     }
   }
   else
   {
+    rampUp(0,0,0);
     setRing(255,255,255,0); // White
     driveControl(-20,20); // Spin to find it
   }
