@@ -55,13 +55,35 @@ void testDetection()
   }
 
   eyes_release();
-  delay(1000);  // Wait 1 second
+  delay(2000);  // Wait 1 second
 }
 
+
+bool state = 0;
 void loop()
 {
   //setRing(255,255,255,0);
  
+  if(state == 0)
+  {
+   // delay(1000);
+    lineSearch(lineVal());
+  }
+
+  if(lineVal() == 1)
+  {
+    state = 1;
+    driveControl(0,0);
+    delay(1000);
+    driveControl(15,15);
+  }
+
+  if(state == 1)
+  {
+    findPillar();
+  }
+  
+
   if(IrReceiver.decode())
   {
     if(IrReceiver.decodedIRData.decodedRawData == delivery)
