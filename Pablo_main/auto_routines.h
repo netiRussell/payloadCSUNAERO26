@@ -93,6 +93,42 @@ void captureRoutine()
 #define CAPTURE_PINK_GAIN 0.5    // How aggressively to turn away from pink
 #define CAPTURE_YELLOW_GAIN 0.3  // How aggressively to turn toward yellow
 
+//PSEUDO CODE FOR VECTOR CAPTURE
+/*
+
+for = 0;
+turn = 0;
+
+{
+  if(pinkCount > 0)
+  {
+    for = PINK_FORWARD_SPEED * CAPTURE_PINK_GAIN;
+    turn = PINK_FORWARD_SPEED; //should be multiplied by a polarity relative to the position of the pink
+  }
+  else if(yellowFound)
+  {
+    for = YELLOW_FORWARD_SPEED;
+
+    if(abs(yellowOffset) > DEADZONE)
+    {
+      y_turn = (YELLOW_FORWARD_SPEED * (abs(yellowOffset))/(yellowOffset))*CAPTURE_YELLOW_GAIN);
+    }
+    else
+    {
+      turn = 0;
+    }
+  }
+  else
+  {
+    for = 0;
+    turn = YELLOW_FOWARD_SPEED;
+  }
+
+  driveControl(for+turn, -for+turn);
+}
+
+*/
+
 void captureMode()
 {
   eyes_snap();
