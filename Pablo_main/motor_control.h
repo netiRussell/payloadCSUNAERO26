@@ -7,17 +7,7 @@ Servo rightDrive;
 int forward = 0;
 int heading = 0;
 
-// Apply forward/heading to motors
-void applyDrive()
-{
-  int left = -(forward + heading);
-  int right = forward - heading;
 
-  int leftSpeed = (-5 * left) + 1500;
-  int rightSpeed = (-5 * right) + 1500;
-  leftDrive.writeMicroseconds(leftSpeed);
-  rightDrive.writeMicroseconds(rightSpeed);
-}
 
 void driveControl(int left, int right) //0 is STOP. -100 is REV. 100 is FOR
 {
@@ -25,6 +15,15 @@ void driveControl(int left, int right) //0 is STOP. -100 is REV. 100 is FOR
   int rightSpeed = (-5*right) + 1500;
   leftDrive.writeMicroseconds(leftSpeed);
   rightDrive.writeMicroseconds(rightSpeed);
+}
+
+// Apply forward/heading to motors
+void applyDrive()
+{
+  int right = -forward + heading;
+  int left = forward - heading;
+
+  driveControl(left,right);
 }
 
 bool ramping = false;

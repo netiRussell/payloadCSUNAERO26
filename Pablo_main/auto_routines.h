@@ -72,7 +72,7 @@ void gearAvoidance(int position)
     delay(100);
     driveControl(0,0);
     delay(100);
-    driveContro.l(25,-25);
+    driveControl(25,-25);
 
     eyes_snap();
     found = eyes_get_pink_count();
@@ -87,8 +87,9 @@ void captureRoutine()
 }
 
 // Tuning constants for capture mode
-#define CAPTURE_FORWARD_SPEED 20
-#define CAPTURE_SCAN_HEADING 20
+#define YELLOW_FORWARD_SPEED 40
+#define PINK_FORWARD_SPEED 40
+#define CAPTURE_SCAN_HEADING 40
 #define CAPTURE_PINK_GAIN 0.5    // How aggressively to turn away from pink
 #define CAPTURE_YELLOW_GAIN 0.3  // How aggressively to turn toward yellow
 
@@ -104,36 +105,40 @@ void captureMode()
   eyes_release();
 
   // State priority: pinkOffset > yellowDetect > yellowOffset > default
-
+  /*
   // 1. PINK OFFSET - highest priority, avoid pink
   if (pinkCount > 0)
   {
-    forward = CAPTURE_FORWARD_SPEED;
+    forward = PINK_FORWARD_SPEED;
     // Turn AWAY from pink: if pink is on right (+offset), turn left (-heading)
     heading = -pinkOffset * CAPTURE_PINK_GAIN;
-    setRing(255, 0, 255, 0); // Magenta - avoiding pink
-  }
+    pixels.setPixelColor(1, pixels.Color(255, 0, 255)); // 1 pixel magenta 
+    pixels.show();
+  }*/
   // 2. YELLOW DETECT - yellow found, drive straight
-  else if (yellowFound && abs(yellowOffset) < DEADZONE)
+  if (yellowFound && abs(yellowOffset) < DEADZONE)
   {
-    forward = CAPTURE_FORWARD_SPEED;
+    forward = YELLOW_FORWARD_SPEED;
     heading = 0;
-    setRing(0, 255, 0, 0); // Green - locked on, driving straight
+    pixels.setPixelColor(1, pixels.Color(255, 255, 0)); // 1 pixel yellow
+    pixels.show();
   }
   // 3. YELLOW OFFSET - yellow found but not centered, turn toward it
   else if (yellowFound)
   {
-    // Don't change forward (keep previous value)
+    // Forward previous value
     // Turn TOWARD yellow: if yellow is on right (+offset), turn right (+heading)
     heading = yellowOffset * CAPTURE_YELLOW_GAIN;
-    setRing(255, 255, 0, 0); // Yellow - centering
+    pixels.setPixelColor(1, pixels.Color(255, 255, 0)); // 1 pixel yellow 
+    pixels.show();
   }
+  
   // 4. DEFAULT - nothing found, scan by spinning
   else
   {
     forward = 0;
-    heading = CAPTURE_SCAN_HEADING; // Spin in place to scan
-    setRing(255, 255, 255, 0); // White - scanning
+    heading = CAPTURE_SCAN_HEADING; // Spin
+    setRing(255, 255, 255, 0); // White
   }
 
   applyDrive();

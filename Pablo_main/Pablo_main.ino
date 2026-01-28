@@ -59,12 +59,12 @@ void testDetection()
 }
 
 
-bool state = 0;
+bool state = 1;
 void loop()
 {
   //setRing(255,255,255,0);
  
-  if(state == 0)
+  if(state == 2)
   {
    // delay(1000);
     lineSearch(lineVal());
@@ -80,7 +80,7 @@ void loop()
 
   if(state == 1)
   {
-    findPillar();
+    captureMode();
   }
   
 
@@ -95,7 +95,7 @@ void loop()
     else if(IrReceiver.decodedIRData.decodedRawData == capture)
     {
       Serial.println("Capture Start");
-      findPillar();
+      captureMode();
     }
     else if(IrReceiver.decodedIRData.decodedRawData == stop)
     {
