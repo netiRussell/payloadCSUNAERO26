@@ -89,7 +89,7 @@ void captureRoutine()
 // Tuning constants for capture mode
 #define YELLOW_FORWARD_SPEED 40
 #define PINK_FORWARD_SPEED 40
-#define CAPTURE_SCAN_HEADING 40
+#define CAPTURE_SCAN_HEADING 20
 #define CAPTURE_PINK_GAIN 0.5    // How aggressively to turn away from pink
 #define CAPTURE_YELLOW_GAIN 0.3  // How aggressively to turn toward yellow
 
@@ -136,46 +136,56 @@ void captureMode()
   bool yellowFound = eyes_get_yellow_found();
   int16_t yellowOffset = eyes_get_yellow_offset_x();
   uint8_t pinkCount = eyes_get_pink_count();
-  int16_t pinkOffset = eyes_get_pink_offset_x(0); // Get closest/largest pink
+  int16_t pinkOffset = eyes_get_pink_offset_x(0);
 
   eyes_release();
 
-  // State priority: pinkOffset > yellowDetect > yellowOffset > default
-  /*
-  // 1. PINK OFFSET - highest priority, avoid pink
+  int fwd = 0;
+  int turn = 0;
+
+  // 1. PINK - highest priority, avoid
   if (pinkCount > 0)
   {
-    forward = PINK_FORWARD_SPEED;
-    // Turn AWAY from pink: if pink is on right (+offset), turn left (-heading)
-    heading = -pinkOffset * CAPTURE_PINK_GAIN;
-    pixels.setPixelColor(1, pixels.Color(255, 0, 255)); // 1 pixel magenta 
-    pixels.show();
-  }*/
-  // 2. YELLOW DETECT - yellow found, drive straight
-  if (yellowFound && abs(yellowOffset) < DEADZONE)
-  {
-    forward = YELLOW_FORWARD_SPEED;
-    heading = 0;
-    pixels.setPixelColor(1, pixels.Color(255, 255, 0)); // 1 pixel yellow
+    fwd = PINK_FORWARD_SPEED * CAPTURE_PINK_GAIN;
+    // Turn away: polarity based on pink position
+    turn = (pinkOffset > 0) ? -PINK_FORWARD_SPEED : PINK_FORWARD_SPEED;
+    pixels.setPixelColor(1, pixels.Color(255, 0, 255)); // magenta
     pixels.show();
   }
-  // 3. YELLOW OFFSET - yellow found but not centered, turn toward it
+  // 2. YELLOW - drive toward it
+  // TEMP: double-check yellow to stop false detections without touching eyes.h
   else if (yellowFound)
   {
-    // Forward previous value
-    // Turn TOWARD yellow: if yellow is on right (+offset), turn right (+heading)
-    heading = yellowOffset * CAPTURE_YELLOW_GAIN;
-    pixels.setPixelColor(1, pixels.Color(255, 255, 0)); // 1 pixel yellow 
+    // Take second snapshot to confirm
+    eyes_snap();
+    yellowFound = eyes_get_yellow_found();
+    yellowOffset = eyes_get_yellow_offset_x();
+    eyes_release();
+
+    if (!yellowFound) return; // False positive, skip this frame
+
+    fwd = YELLOW_FORWARD_SPEED;
+
+    if (abs(yellowOffset) > DEADZONE)
+    {
+      // Bang-bang: fixed turn magnitude, direction from offset sign
+      turn = (yellowOffset > 0) ? YELLOW_FORWARD_SPEED * CAPTURE_YELLOW_GAIN
+                                : -YELLOW_FORWARD_SPEED * CAPTURE_YELLOW_GAIN;
+    }
+    else
+    {
+      turn = 0; // Centered, go straight
+    }
+    pixels.setPixelColor(1, pixels.Color(255, 255, 0)); // yellow
     pixels.show();
   }
-  
-  // 4. DEFAULT - nothing found, scan by spinning
+  // 3. DEFAULT - scan
   else
   {
-    forward = 0;
-    heading = CAPTURE_SCAN_HEADING; // Spin
-    setRing(255, 255, 255, 0); // White
+    fwd = 0;
+    turn = CAPTURE_SCAN_HEADING;
+    setRing(255, 255, 255, 0); // white
   }
 
-  applyDrive();
+  driveControl(fwd + turn, fwd - turn);
 }
