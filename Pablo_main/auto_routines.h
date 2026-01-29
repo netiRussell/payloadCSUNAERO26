@@ -87,9 +87,9 @@ void captureRoutine()
 }
 
 // Tuning constants for capture mode
-#define YELLOW_FORWARD_SPEED 40
-#define PINK_FORWARD_SPEED 40
-#define CAPTURE_SCAN_HEADING 20
+#define YELLOW_FORWARD_SPEED 30
+#define PINK_FORWARD_SPEED 30
+#define CAPTURE_SCAN_HEADING 25
 #define CAPTURE_PINK_GAIN 0.5    // How aggressively to turn away from pink
 #define CAPTURE_YELLOW_GAIN 0.3  // How aggressively to turn toward yellow
 
@@ -186,6 +186,12 @@ void captureMode()
     turn = CAPTURE_SCAN_HEADING;
     setRing(255, 255, 255, 0); // white
   }
+
+  //Serial.print("fwd: "); Serial.println(fwd);
+  //Serial.print("turn: "); Serial.println(turn);
+
+  Serial.print("left: "); Serial.println(fwd+turn);
+  Serial.print("right: "); Serial.println(fwd-turn);
 
   driveControl(fwd + turn, fwd - turn);
 }

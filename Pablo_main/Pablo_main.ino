@@ -70,7 +70,8 @@ void loop()
     lineSearch(lineVal());
   }
 
-  if(lineVal() == 1)
+
+  if(lineVal() == 2)
   {
     state = 1;
     driveControl(0,0);
