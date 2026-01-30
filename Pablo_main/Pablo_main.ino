@@ -59,34 +59,58 @@ void testDetection()
 }
 
 
-bool state = 1;
+bool state = 0;
+bool test = 1;
+
 void loop()
 {
   //setRing(255,255,255,0);
- 
-  if(state == 2)
-  {
-   // delay(1000);
-    lineSearch(lineVal());
-  }
-
-
-  if(lineVal() == 2)
-  {
-    state = 1;
-    driveControl(0,0);
-    delay(1000);
-    driveControl(15,15);
-  }
-
-  if(state == 1)
+  if(test)
   {
     captureMode();
   }
   
-
-  if(IrReceiver.decode())
+  if(lineVal() == 1 && state == 0 && !test) //TODO: replace with 1
   {
+    driveControl(0,0);
+    delay(10000);
+    state = 1;
+    //driveControl(15,15);
+  }
+
+  if(IrReceiver.decode() && !test)
+  {
+    if(IrReceiver.decodedIRData.decodedRawData == delivery)
+    {
+      if(state == 0)
+      {
+        Serial.println("Delivery Start");
+        lineSearch(lineVal());
+      }
+      
+      if(state == 1)
+      {
+        Serial.println("Capture Start");
+        captureMode();
+      }
+      IrReceiver.resume();
+    }
+    else if(IrReceiver.decodedIRData.decodedRawData == ESTOP)
+    {
+      Serial.println("ESTOP");
+      leftDrive.detach();
+      rightDrive.detach();
+      IrReceiver.resume();
+    }
+    else
+    {
+      driveControl(0,0);
+      ledIdle();
+      IrReceiver.resume();
+    }
+
+    //Serial.println(state);
+    /*
     if(IrReceiver.decodedIRData.decodedRawData == delivery)
     {
       Serial.println("Delivery Start");
@@ -107,6 +131,7 @@ void loop()
       leftDrive.detach();
       rightDrive.detach();
     }
+    */
   }
   //testDetection();
   //lineSearch(lineVal());

@@ -91,7 +91,7 @@ void captureRoutine()
 #define PINK_FORWARD_SPEED 30
 #define CAPTURE_SCAN_HEADING 25
 #define CAPTURE_PINK_GAIN 0.5    // How aggressively to turn away from pink
-#define CAPTURE_YELLOW_GAIN 0.3  // How aggressively to turn toward yellow
+#define CAPTURE_YELLOW_GAIN 0.5  // How aggressively to turn toward yellow
 
 //PSEUDO CODE FOR VECTOR CAPTURE
 /*
