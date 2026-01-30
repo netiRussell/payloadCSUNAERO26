@@ -86,12 +86,58 @@ void captureRoutine()
   if(!rampUp(0,50,10)) driveControl(50,50);
 }
 
+// Debug: capture and print what camera sees
+void captureDebug()
+{
+  eyes_snap();
+
+  bool yellowFound = eyes_get_yellow_found();
+  int16_t yellowOffset = eyes_get_yellow_offset_x();
+  uint16_t yellowArea = eyes_get_yellow_area();
+  uint8_t pinkCount = eyes_get_pink_count();
+  int16_t pinkOffset0 = eyes_get_pink_offset_x(0);
+  int16_t pinkOffset1 = eyes_get_pink_offset_x(1);
+
+  eyes_release();
+
+  // Set all pixels white first
+  for (int i = 0; i < NUMPIXELS; i++)
+  {
+    pixels.setPixelColor(i, pixels.Color(255, 255, 255));
+  }
+
+  // Top pixel off if yellow found
+  if (yellowFound)
+  {
+    pixels.setPixelColor(0, pixels.Color(0, 0, 0));
+  }
+
+  // Bottom pixel off if pink found
+  if (pinkCount > 0)
+  {
+    pixels.setPixelColor(4, pixels.Color(0, 0, 0));
+  }
+
+  pixels.show();
+
+  Serial.println("=== CAPTURE DEBUG ===");
+  Serial.print("Yellow found: "); Serial.println(yellowFound ? "YES" : "NO");
+  Serial.print("Yellow offset: "); Serial.println(yellowOffset);
+  Serial.print("Yellow area: "); Serial.println(yellowArea);
+  Serial.print("Pink count: "); Serial.println(pinkCount);
+  Serial.print("Pink[0] offset: "); Serial.println(pinkOffset0);
+  Serial.print("Pink[1] offset: "); Serial.println(pinkOffset1);
+  Serial.println("=====================");
+
+  delay(1000);
+}
+
 // Tuning constants for capture mode
-#define YELLOW_FORWARD_SPEED 30
-#define PINK_FORWARD_SPEED 30
-#define CAPTURE_SCAN_HEADING 18
-#define CAPTURE_PINK_GAIN 0.5    // How aggressively to turn away from pink
-#define CAPTURE_YELLOW_GAIN 0.5  // How aggressively to turn toward yellow
+#define YELLOW_FORWARD_SPEED 20
+#define PINK_FORWARD_SPEED 15
+#define CAPTURE_SCAN_HEADING 20
+#define CAPTURE_PINK_GAIN 0.9    // How aggressively to turn away from pink
+#define CAPTURE_YELLOW_GAIN 0.4  // How aggressively to turn toward yellow
 
 //PSEUDO CODE FOR VECTOR CAPTURE
 /*
@@ -129,6 +175,9 @@ turn = 0;
 
 */
 
+// Track previous state for scan-to-yellow transition
+static bool wasScanning = false;
+
 void captureMode()
 {
   eyes_snap();
@@ -151,22 +200,20 @@ void captureMode()
     turn = (pinkOffset > 0) ? -PINK_FORWARD_SPEED : PINK_FORWARD_SPEED;
     pixels.setPixelColor(1, pixels.Color(255, 0, 255)); // magenta
     pixels.show();
+    wasScanning = false;
   }
   // 2. YELLOW - drive toward it
-  // TEMP: double-check yellow to stop false detections without touching eyes.h
   else if (yellowFound)
   {
-    /*// Take second snapshot to confirm
-    eyes_snap();
-    yellowFound = eyes_get_yellow_found();
-    yellowOffset = eyes_get_yellow_offset_x();
-    eyes_release();
-
-    if (!yellowFound) return; // False positive, skip this frame
-    */
     fwd = YELLOW_FORWARD_SPEED;
 
-    if (abs(yellowOffset) > DEADZONE)
+    // Just transitioned from scan? Counter-rotate slightly to kill spin momentum
+    if (wasScanning)
+    {
+      turn = -CAPTURE_SCAN_HEADING * 0.5; // Brief counter-turn (opposite of scan direction)
+      wasScanning = false;
+    }
+    else if (abs(yellowOffset) > DEADZONE)
     {
       // Bang-bang: fixed turn magnitude, direction from offset sign
       turn = (yellowOffset > 0) ? YELLOW_FORWARD_SPEED * CAPTURE_YELLOW_GAIN
@@ -185,6 +232,7 @@ void captureMode()
     fwd = 0;
     turn = CAPTURE_SCAN_HEADING;
     setRing(255, 255, 255, 0); // white
+    wasScanning = true; // Mark that we were scanning
   }
 
   //Serial.print("fwd: "); Serial.println(fwd);

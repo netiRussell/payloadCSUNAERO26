@@ -68,6 +68,7 @@ void loop()
   if(test)
   {
     captureMode();
+    //captureDebug();
   }
   
   if(lineVal() == 1 && state == 0 && !test) //TODO: replace with 1
