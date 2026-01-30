@@ -89,7 +89,7 @@ void captureRoutine()
 // Tuning constants for capture mode
 #define YELLOW_FORWARD_SPEED 30
 #define PINK_FORWARD_SPEED 30
-#define CAPTURE_SCAN_HEADING 25
+#define CAPTURE_SCAN_HEADING 18
 #define CAPTURE_PINK_GAIN 0.5    // How aggressively to turn away from pink
 #define CAPTURE_YELLOW_GAIN 0.5  // How aggressively to turn toward yellow
 
@@ -156,14 +156,14 @@ void captureMode()
   // TEMP: double-check yellow to stop false detections without touching eyes.h
   else if (yellowFound)
   {
-    // Take second snapshot to confirm
+    /*// Take second snapshot to confirm
     eyes_snap();
     yellowFound = eyes_get_yellow_found();
     yellowOffset = eyes_get_yellow_offset_x();
     eyes_release();
 
     if (!yellowFound) return; // False positive, skip this frame
-
+    */
     fwd = YELLOW_FORWARD_SPEED;
 
     if (abs(yellowOffset) > DEADZONE)
