@@ -86,7 +86,7 @@ void captureRoutine()
   if(!rampUp(0,50,10)) driveControl(50,50);
 }
 
-// Debug: capture and print what camera sees
+// Debug: capture and print what camera sees, 1 LED turns of if it sees 1 color, 2 LEDS turns off if it sees 2 colors
 void captureDebug()
 {
   eyes_snap();
@@ -178,16 +178,50 @@ turn = 0;
 // Track previous state for scan-to-yellow transition
 static bool wasScanning = false;
 
+// =============================================
+// PROFILING TOGGLE - set to true to see FPS and timing stats in Serial
+// Prints: FPS | Frame time (total in ms) | Capture time (camera in ms) | Decision time (logicin ms)
+// =============================================
+#define PROFILE_CAPTURE_MODE false
+
+#if PROFILE_CAPTURE_MODE
+static float avgFrameTime = 0;
+static float avgCaptureTime = 0;
+static float avgDecisionTime = 0;
+static float avgFps = 0;
+static uint32_t lastPrintTime = 0;
+
+void printProfileStats()
+{
+  if (millis() - lastPrintTime >= 1000)
+  {
+    Serial.print("FPS: "); Serial.print(avgFps, 1);
+    Serial.print(" | Frame: "); Serial.print(avgFrameTime, 1); Serial.print("ms");
+    Serial.print(" | Capture: "); Serial.print(avgCaptureTime, 1); Serial.print("ms");
+    Serial.print(" | Decision: "); Serial.print(avgDecisionTime, 1); Serial.println("ms");
+    lastPrintTime = millis();
+  }
+}
+#endif
+
 void captureMode()
 {
-  eyes_snap();
+  #if PROFILE_CAPTURE_MODE
+  uint32_t frameStart = millis();
+  uint32_t captureStart = millis();
+  #endif
 
+  eyes_snap();
   bool yellowFound = eyes_get_yellow_found();
   int16_t yellowOffset = eyes_get_yellow_offset_x();
   uint8_t pinkCount = eyes_get_pink_count();
   int16_t pinkOffset = eyes_get_pink_offset_x(0);
-
   eyes_release();
+
+  #if PROFILE_CAPTURE_MODE
+  uint32_t captureTime = millis() - captureStart;
+  uint32_t decisionStart = millis();
+  #endif
 
   int fwd = 0;
   int turn = 0;
@@ -235,11 +269,16 @@ void captureMode()
     wasScanning = true; // Mark that we were scanning
   }
 
-  //Serial.print("fwd: "); Serial.println(fwd);
-  //Serial.print("turn: "); Serial.println(turn);
-
-  Serial.print("left: "); Serial.println(fwd+turn);
-  Serial.print("right: "); Serial.println(fwd-turn);
+  #if PROFILE_CAPTURE_MODE
+  uint32_t decisionTime = millis() - decisionStart;
+  uint32_t frameTime = millis() - frameStart;
+  float weight = 0.2;
+  avgCaptureTime = avgCaptureTime * (1 - weight) + captureTime * weight;
+  avgDecisionTime = avgDecisionTime * (1 - weight) + decisionTime * weight;
+  avgFrameTime = avgFrameTime * (1 - weight) + frameTime * weight;
+  avgFps = (avgFrameTime > 0) ? 1000.0 / avgFrameTime : 0;
+  printProfileStats();
+  #endif
 
   driveControl(fwd + turn, fwd - turn);
 }
