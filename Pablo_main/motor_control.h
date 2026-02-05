@@ -12,7 +12,7 @@ int heading = 0;
 void driveControl(int left, int right) //0 is STOP. -100 is REV. 100 is FOR
 {
   int leftSpeed = (-5*left) + 1500;
-  int rightSpeed = (-5*right) + 1500;
+  int rightSpeed = (5*right) + 1500;
   leftDrive.writeMicroseconds(leftSpeed);
   rightDrive.writeMicroseconds(rightSpeed);
 }
@@ -20,8 +20,8 @@ void driveControl(int left, int right) //0 is STOP. -100 is REV. 100 is FOR
 // Apply forward/heading to motors
 void applyDrive()
 {
-  int right = -forward + heading;
-  int left = forward - heading;
+  int left  = forward + heading;
+  int right = forward - heading;
 
   driveControl(left,right);
 }
