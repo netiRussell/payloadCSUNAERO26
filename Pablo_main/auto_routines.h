@@ -52,84 +52,10 @@ void findPillar()
   }
 }
 
-void gearAvoidance(int position)
-{
-  eyes_snap(); // Capture frame to check for pink
-  uint8_t found = eyes_get_pink_count(); //equals total of discovered pink targets
-  uint16_t offset = eyes_get_pink_offset_x(2); //equals the offset of the pink targets
-  eyes_release(); // Release immediately; pillarPID will take its own picture if needed
-
-  #define gearTolerance 50; //TODO: adjust accordingly
-  position = position + gearTolerance;
-
-  if(found > 0 && offset < position)
-  {
-    driveControl(-25,25);
-    delay(100);
-    driveControl(0,0);
-    delay(100);
-    driveControl(15,15);
-    delay(100);
-    driveControl(0,0);
-    delay(100);
-    driveControl(25,-25);
-
-    eyes_snap();
-    found = eyes_get_pink_count();
-    eyes_release();
-  }
-}
-
 void captureRoutine()
 {
   IrReceiver.resume();
   if(!rampUp(0,50,10)) driveControl(50,50);
-}
-
-// Debug: capture and print what camera sees, 1 LED turns of if it sees 1 color, 2 LEDS turns off if it sees 2 colors
-void captureDebug()
-{
-  eyes_snap();
-
-  bool yellowFound = eyes_get_yellow_found();
-  int16_t yellowOffset = eyes_get_yellow_offset_x();
-  uint16_t yellowArea = eyes_get_yellow_area();
-  uint8_t pinkCount = eyes_get_pink_count();
-  int16_t pinkOffset0 = eyes_get_pink_offset_x(0);
-  int16_t pinkOffset1 = eyes_get_pink_offset_x(1);
-
-  eyes_release();
-
-  // Set all pixels white first
-  for (int i = 0; i < NUMPIXELS; i++)
-  {
-    pixels.setPixelColor(i, pixels.Color(255, 255, 255));
-  }
-
-  // Top pixel off if yellow found
-  if (yellowFound)
-  {
-    pixels.setPixelColor(0, pixels.Color(0, 0, 0));
-  }
-
-  // Bottom pixel off if pink found
-  if (pinkCount > 0)
-  {
-    pixels.setPixelColor(4, pixels.Color(0, 0, 0));
-  }
-
-  pixels.show();
-
-  Serial.println("=== CAPTURE DEBUG ===");
-  Serial.print("Yellow found: "); Serial.println(yellowFound ? "YES" : "NO");
-  Serial.print("Yellow offset: "); Serial.println(yellowOffset);
-  Serial.print("Yellow area: "); Serial.println(yellowArea);
-  Serial.print("Pink count: "); Serial.println(pinkCount);
-  Serial.print("Pink[0] offset: "); Serial.println(pinkOffset0);
-  Serial.print("Pink[1] offset: "); Serial.println(pinkOffset1);
-  Serial.println("=====================");
-
-  delay(1000);
 }
 
 // Tuning constants for capture mode
@@ -139,41 +65,6 @@ void captureDebug()
 #define CAPTURE_PINK_GAIN 0.9    // How aggressively to turn away from pink
 #define CAPTURE_YELLOW_GAIN 0.4  // How aggressively to turn toward yellow
 
-//PSEUDO CODE FOR VECTOR CAPTURE
-/*
-
-for = 0;
-turn = 0;
-
-{
-  if(pinkCount > 0)
-  {
-    for = PINK_FORWARD_SPEED * CAPTURE_PINK_GAIN;
-    turn = PINK_FORWARD_SPEED; //should be multiplied by a polarity relative to the position of the pink
-  }
-  else if(yellowFound)
-  {
-    for = YELLOW_FORWARD_SPEED;
-
-    if(abs(yellowOffset) > DEADZONE)
-    {
-      y_turn = (YELLOW_FORWARD_SPEED * (abs(yellowOffset))/(yellowOffset))*CAPTURE_YELLOW_GAIN);
-    }
-    else
-    {
-      turn = 0;
-    }
-  }
-  else
-  {
-    for = 0;
-    turn = YELLOW_FOWARD_SPEED;
-  }
-
-  driveControl(for+turn, -for+turn);
-}
-
-*/
 
 // Track previous state for scan-to-yellow transition
 static bool wasScanning = false;
